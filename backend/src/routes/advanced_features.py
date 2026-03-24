@@ -551,3 +551,121 @@ Fornisci una sintesi strutturata con:
             'success': False,
             'error': str(e)
         }), 500
+
+
+# ============================================================
+# NOUVELLES FONCTIONNALITES v5.0 - Arena, Fusion, Conseil
+# ============================================================
+
+@advanced_bp.route('/thinkers', methods=['GET'])
+def list_thinkers():
+    try:
+        from src.citation_engine import get_thinkers_list
+        return jsonify({'success': True, 'thinkers': get_thinkers_list()})
+    except Exception as e:
+        logger.error(f"Errore thinkers: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@advanced_bp.route('/sages', methods=['GET'])
+def list_sages():
+    try:
+        from src.conseil_des_sages import get_sage_profiles
+        return jsonify({'success': True, 'sages': get_sage_profiles()})
+    except Exception as e:
+        logger.error(f"Errore sages: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@advanced_bp.route('/arena/debate', methods=['POST'])
+def arena_debate():
+    try:
+        data = request.get_json()
+        thinker_a = data.get('thinker_a', 'don_bosco')
+        thinker_b = data.get('thinker_b', 'maria_montessori')
+        theme = data.get('theme', '')
+        language = data.get('language', 'it')
+        citation_style = data.get('citation_style', 'apa')
+
+        if not theme:
+            return jsonify({'success': False, 'error': 'Tema richiesto'}), 400
+
+        from src.arena_dialectica import run_arena_debate
+        result = run_arena_debate(thinker_a, thinker_b, theme, language, citation_style)
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Errore arena debate: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@advanced_bp.route('/fusion/generate', methods=['POST'])
+def fusion_generate():
+    try:
+        data = request.get_json()
+        concept_a = data.get('concept_a', '')
+        concept_b = data.get('concept_b', '')
+        language = data.get('language', 'it')
+        citation_style = data.get('citation_style', 'apa')
+
+        if not concept_a or not concept_b:
+            return jsonify({'success': False, 'error': 'Due concetti richiesti'}), 400
+
+        from src.fusion_temporelle import generate_fusion
+        result = generate_fusion(concept_a, concept_b, language, citation_style)
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Errore fusion: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@advanced_bp.route('/council/convene', methods=['POST'])
+def council_convene():
+    try:
+        data = request.get_json()
+        question = data.get('question', '')
+        sage_ids = data.get('sages', ['theologian', 'pedagogue', 'philosopher'])
+        language = data.get('language', 'it')
+        citation_style = data.get('citation_style', 'apa')
+
+        if not question:
+            return jsonify({'success': False, 'error': 'Domanda richiesta'}), 400
+
+        from src.conseil_des_sages import convene_council
+        result = convene_council(question, sage_ids, language, citation_style)
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Errore council: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@advanced_bp.route('/export', methods=['POST'])
+def export_document():
+    try:
+        from flask import send_file
+        import io
+
+        data = request.get_json()
+        title = data.get('title', 'Documento Moteur Magique')
+        content = data.get('content', '')
+        bibliography = data.get('bibliography', '')
+        provenance_note = data.get('provenance_note', '')
+
+        from src.citation_engine import create_export_document
+        doc_bytes = create_export_document(title, content, bibliography, provenance_note)
+
+        if not doc_bytes:
+            return jsonify({'success': False, 'error': 'Export non disponibile'}), 500
+
+        return send_file(
+            io.BytesIO(doc_bytes),
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            as_attachment=True,
+            download_name=f'{title.replace(" ", "_")}.docx'
+        )
+
+    except Exception as e:
+        logger.error(f"Errore export: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500

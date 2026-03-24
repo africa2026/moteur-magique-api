@@ -44,6 +44,25 @@ export default function Home() {
   const [isDriveConnected, setIsDriveConnected] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
+  // Arena state
+  const [thinkerA, setThinkerA] = useState("don_bosco");
+  const [thinkerB, setThinkerB] = useState("maria_montessori");
+  const [arenaTheme, setArenaTheme] = useState("");
+  const [arenaResult, setArenaResult] = useState<any>(null);
+  const [arenaLoading, setArenaLoading] = useState(false);
+
+  // Fusion state
+  const [conceptA, setConceptA] = useState("");
+  const [conceptB, setConceptB] = useState("");
+  const [fusionResult, setFusionResult] = useState<any>(null);
+  const [fusionLoading, setFusionLoading] = useState(false);
+
+  // Council state
+  const [councilQuestion, setCouncilQuestion] = useState("");
+  const [selectedSages, setSelectedSages] = useState(["theologian", "pedagogue", "philosopher"]);
+  const [councilResult, setCouncilResult] = useState<any>(null);
+  const [councilLoading, setCouncilLoading] = useState(false);
+
   // Simulate system activity
   useEffect(() => {
     const interval = setInterval(() => {
@@ -118,6 +137,95 @@ export default function Home() {
     input.click();
   };
 
+  const thinkerOptions = [
+    { id: "don_bosco", name: "Don Bosco" },
+    { id: "maria_montessori", name: "Maria Montessori" },
+    { id: "paulo_freire", name: "Paulo Freire" },
+    { id: "hannah_arendt", name: "Hannah Arendt" },
+    { id: "tommaso_aquino", name: "Tommaso d'Aquino" },
+    { id: "jean_piaget", name: "Jean Piaget" },
+    { id: "lev_vygotsky", name: "Lev Vygotsky" },
+    { id: "edith_stein", name: "Edith Stein" },
+  ];
+
+  const sageOptions = [
+    { id: "theologian", name: "Teologo" },
+    { id: "pedagogue", name: "Pedagogo" },
+    { id: "philosopher", name: "Filosofo" },
+    { id: "sociologist", name: "Sociologo" },
+    { id: "historian", name: "Storico" },
+    { id: "psychologist", name: "Psicologo" },
+  ];
+
+  const handleArenaDebate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!arenaTheme.trim()) return;
+    setArenaLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/api/advanced/arena/debate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thinker_a: thinkerA, thinker_b: thinkerB, theme: arenaTheme, language: "it", citation_style: "apa" }),
+      });
+      if (!response.ok) throw new Error(`Errore server: ${response.status}`);
+      const data = await response.json();
+      setArenaResult(data);
+      setKnowledgeScore(prev => prev + 200);
+    } catch (err) {
+      console.error("Arena error:", err);
+      setError("Errore di connessione all'Arena Dialectica. Riprovare.");
+    } finally {
+      setArenaLoading(false);
+    }
+  };
+
+  const handleFusion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!conceptA.trim() || !conceptB.trim()) return;
+    setFusionLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/api/advanced/fusion/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ concept_a: conceptA, concept_b: conceptB, language: "it", citation_style: "apa" }),
+      });
+      if (!response.ok) throw new Error(`Errore server: ${response.status}`);
+      const data = await response.json();
+      setFusionResult(data);
+      setKnowledgeScore(prev => prev + 300);
+    } catch (err) {
+      console.error("Fusion error:", err);
+      setError("Errore di connessione alla Fusion Temporelle. Riprovare.");
+    } finally {
+      setFusionLoading(false);
+    }
+  };
+
+  const handleCouncil = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!councilQuestion.trim()) return;
+    setCouncilLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/api/advanced/council/convene`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: councilQuestion, sages: selectedSages, language: "it", citation_style: "apa" }),
+      });
+      if (!response.ok) throw new Error(`Errore server: ${response.status}`);
+      const data = await response.json();
+      setCouncilResult(data);
+      setKnowledgeScore(prev => prev + 250);
+    } catch (err) {
+      console.error("Council error:", err);
+      setError("Errore di connessione al Consiglio dei Saggi. Riprovare.");
+    } finally {
+      setCouncilLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans text-foreground overflow-hidden selection:bg-primary selection:text-primary-foreground">
       
@@ -173,28 +281,28 @@ export default function Home() {
               <span className="hidden md:inline">RICERCA</span>
             </Button>
             <Button 
-              variant={activeTab === "chat" ? "secondary" : "ghost"} 
-              className={`w-full justify-start gap-3 h-12 font-tech tracking-wide ${activeTab === "chat" ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={() => setActiveTab("chat")}
+              variant={activeTab === "arena" ? "secondary" : "ghost"} 
+              className={`w-full justify-start gap-3 h-12 font-tech tracking-wide ${activeTab === "arena" ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveTab("arena")}
             >
-              <MessageSquare className="w-5 h-5" />
-              <span className="hidden md:inline">CHAT PDF</span>
+              <Zap className="w-5 h-5" />
+              <span className="hidden md:inline">ARENA</span>
             </Button>
             <Button 
-              variant={activeTab === "write" ? "secondary" : "ghost"} 
-              className={`w-full justify-start gap-3 h-12 font-tech tracking-wide ${activeTab === "write" ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={() => setActiveTab("write")}
+              variant={activeTab === "fusion" ? "secondary" : "ghost"} 
+              className={`w-full justify-start gap-3 h-12 font-tech tracking-wide ${activeTab === "fusion" ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveTab("fusion")}
             >
-              <FileText className="w-5 h-5" />
-              <span className="hidden md:inline">REDAZIONE</span>
+              <Sparkles className="w-5 h-5" />
+              <span className="hidden md:inline">FUSION</span>
             </Button>
             <Button 
-              variant={activeTab === "library" ? "secondary" : "ghost"} 
-              className={`w-full justify-start gap-3 h-12 font-tech tracking-wide ${activeTab === "library" ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={() => setActiveTab("library")}
+              variant={activeTab === "council" ? "secondary" : "ghost"} 
+              className={`w-full justify-start gap-3 h-12 font-tech tracking-wide ${activeTab === "council" ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveTab("council")}
             >
-              <Library className="w-5 h-5" />
-              <span className="hidden md:inline">ARCHIVIO</span>
+              <Globe className="w-5 h-5" />
+              <span className="hidden md:inline">CONSIGLIO</span>
             </Button>
           </div>
 
@@ -317,110 +425,232 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Results Grid */}
-              {results.length > 0 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                  <div className="flex items-center justify-between border-b border-border pb-4">
-                    <h3 className="font-tech text-2xl font-bold text-white flex items-center gap-2">
-                      <span className="w-2 h-8 bg-primary rounded-sm"></span>
-                      RISULTATI ANALISI
-                    </h3>
-                    <Badge variant="outline" className="font-mono border-accent text-accent bg-accent/10">
-                      {results.length} MATCH TROVATI
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid gap-4">
-                    {results.map((result, index) => (
-                      <Card key={index} className="group bg-card border-l-4 border-l-primary border-y border-r border-border hover:border-primary/50 transition-all duration-300 overflow-hidden relative">
-                        <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono text-xs" onClick={() => window.open(result.url, '_blank')}>
-                            <Maximize2 className="w-3 h-3 mr-1" /> ESPANDI
-                          </Button>
-                        </div>
-                        
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="secondary" className="bg-primary/20 text-primary border-none font-mono text-[10px] tracking-wider">
-                                  {result.type}
-                                </Badge>
-                                <span className="text-xs font-mono text-muted-foreground">RILEVANZA: <span className="text-accent">{result.relevance}%</span></span>
-                                <Progress value={result.relevance} className="w-20 h-1.5 bg-secondary [&>div]:bg-accent" />
-                              </div>
-                              <CardTitle className="font-tech text-xl text-white group-hover:text-primary transition-colors">
-                                {result.title}
-                              </CardTitle>
-                              <CardDescription className="flex items-center gap-2 text-sm font-mono">
-                                <span className="text-accent">{result.source}</span>
-                                <span className="text-muted-foreground/50">|</span>
-                                <span>ID: REF-{1000 + index}</span>
-                              </CardDescription>
+              {/* === TAB: SEARCH (original) === */}
+              {activeTab === "search" && (
+                <>
+                  {results.length > 0 && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                      <div className="flex items-center justify-between border-b border-border pb-4">
+                        <h3 className="font-tech text-2xl font-bold text-white flex items-center gap-2">
+                          <span className="w-2 h-8 bg-primary rounded-sm"></span>
+                          RISULTATI ANALISI
+                        </h3>
+                        <Badge variant="outline" className="font-mono border-accent text-accent bg-accent/10">
+                          {results.length} MATCH TROVATI
+                        </Badge>
+                      </div>
+                      <div className="grid gap-4">
+                        {results.map((result: any, index: number) => (
+                          <Card key={index} className="group bg-card border-l-4 border-l-primary border-y border-r border-border hover:border-primary/50 transition-all duration-300 overflow-hidden relative">
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono text-xs" onClick={() => window.open(result.url, '_blank')}>
+                                <Maximize2 className="w-3 h-3 mr-1" /> ESPANDI
+                              </Button>
                             </div>
+                            <CardHeader className="pb-2">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant="secondary" className="bg-primary/20 text-primary border-none font-mono text-[10px] tracking-wider">{result.type}</Badge>
+                                  <span className="text-xs font-mono text-muted-foreground">RILEVANZA: <span className="text-accent">{result.relevance}%</span></span>
+                                  <Progress value={result.relevance} className="w-20 h-1.5 bg-secondary [&>div]:bg-accent" />
+                                </div>
+                                <CardTitle className="font-tech text-xl text-white group-hover:text-primary transition-colors">{result.title}</CardTitle>
+                                <CardDescription className="flex items-center gap-2 text-sm font-mono">
+                                  <span className="text-accent">{result.source}</span>
+                                </CardDescription>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="bg-secondary/50 p-3 rounded border border-white/5 font-mono text-sm text-muted-foreground leading-relaxed">
+                                <span className="text-primary mr-2">{">"}</span>{result.snippet}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* === TAB: ARENA DIALECTICA === */}
+              {activeTab === "arena" && (
+                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in">
+                  <div className="text-center space-y-3">
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-4 py-1 font-mono tracking-widest">ARENA DIALECTICA</Badge>
+                    <h2 className="text-3xl font-bold text-white font-tech">Dialogo tra Pensatori</h2>
+                    <p className="text-muted-foreground font-mono text-sm">Due menti, un tema, una sintesi inedita</p>
+                  </div>
+
+                  <form onSubmit={handleArenaDebate} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-mono text-muted-foreground mb-1 block">PENSATORE A</label>
+                        <select value={thinkerA} onChange={e => setThinkerA(e.target.value)} className="w-full h-12 bg-background border border-border rounded-md px-3 text-white font-mono">
+                          {thinkerOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-mono text-muted-foreground mb-1 block">PENSATORE B</label>
+                        <select value={thinkerB} onChange={e => setThinkerB(e.target.value)} className="w-full h-12 bg-background border border-border rounded-md px-3 text-white font-mono">
+                          {thinkerOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <Input placeholder="TEMA DEL DIBATTITO..." value={arenaTheme} onChange={e => setArenaTheme(e.target.value)} className="h-14 bg-background border-primary/30 text-white font-tech text-lg" />
+                    <Button type="submit" disabled={arenaLoading} className="w-full h-14 bg-primary text-primary-foreground font-bold font-tech tracking-wider text-lg">
+                      {arenaLoading ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></span>GENERAZIONE IN CORSO...</span> : "AVVIA DIBATTITO"}
+                    </Button>
+                  </form>
+
+                  {arenaResult && arenaResult.success && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8">
+                      {arenaResult.rounds?.map((round: any, i: number) => (
+                        <Card key={i} className={`bg-card border-l-4 ${round.speaker_id === arenaResult.thinker_a?.id ? 'border-l-primary' : 'border-l-accent'}`}>
+                          <CardHeader className="pb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="font-mono text-xs">ROUND {round.round}</Badge>
+                              <span className="font-tech font-bold text-white">{round.speaker}</span>
+                            </div>
+                          </CardHeader>
+                          <CardContent><p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{round.text}</p></CardContent>
+                        </Card>
+                      ))}
+
+                      <Card className="bg-card border-2 border-primary shadow-[0_0_30px_rgba(251,191,36,0.2)]">
+                        <CardHeader>
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-primary" />
+                            <CardTitle className="font-tech text-primary">SINTESI INEDITA</CardTitle>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <div className="bg-secondary/50 p-3 rounded border border-white/5 font-mono text-sm text-muted-foreground leading-relaxed">
-                            <span className="text-primary mr-2">{">"}</span>
-                            {result.snippet}
+                        <CardContent className="space-y-4">
+                          <p className="text-white leading-relaxed whitespace-pre-wrap">{arenaResult.synthesis}</p>
+                          <div className="border-t border-border pt-4">
+                            <p className="text-xs font-mono text-muted-foreground whitespace-pre-wrap">{arenaResult.bibliography}</p>
                           </div>
-                          <div className="mt-4 flex gap-2">
-                            <Button variant="ghost" size="sm" className="h-8 text-xs font-mono text-muted-foreground hover:text-white">
-                              <Share2 className="w-3 h-3 mr-1" /> CONDIVIDI
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8 text-xs font-mono text-muted-foreground hover:text-white">
-                              <BookOpen className="w-3 h-3 mr-1" /> CITA ({result.citations})
-                            </Button>
-                          </div>
+                          <p className="text-[10px] font-mono text-muted-foreground/50 italic">{arenaResult.provenance_note}</p>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Empty State / Quick Actions */}
-              {results.length === 0 && !isSearching && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                  <Card className="bg-card border border-white/5 hover:border-primary/50 transition-all cursor-pointer group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 relative z-10">
-                      <div className="w-16 h-16 rounded-full bg-secondary border border-white/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:border-primary transition-all duration-300 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                        <Sparkles className="w-8 h-8" />
+              {/* === TAB: FUSION TEMPORELLE === */}
+              {activeTab === "fusion" && (
+                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in">
+                  <div className="text-center space-y-3">
+                    <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30 px-4 py-1 font-mono tracking-widest">FUSION TEMPORELLE</Badge>
+                    <h2 className="text-3xl font-bold text-white font-tech">Collisione di Concetti</h2>
+                    <p className="text-muted-foreground font-mono text-sm">Due idee, un neologismo, un nuovo mondo</p>
+                  </div>
+
+                  <form onSubmit={handleFusion} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input placeholder="CONCETTO A (es: amorevolezza)" value={conceptA} onChange={e => setConceptA(e.target.value)} className="h-14 bg-background border-accent/30 text-white font-tech text-lg" />
+                      <Input placeholder="CONCETTO B (es: intelligenza emotiva)" value={conceptB} onChange={e => setConceptB(e.target.value)} className="h-14 bg-background border-accent/30 text-white font-tech text-lg" />
+                    </div>
+                    <Button type="submit" disabled={fusionLoading} className="w-full h-14 bg-accent text-accent-foreground font-bold font-tech tracking-wider text-lg">
+                      {fusionLoading ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin"></span>FUSIONE IN CORSO...</span> : "FONDI I CONCETTI"}
+                    </Button>
+                  </form>
+
+                  {fusionResult && fusionResult.success && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8">
+                      <Card className="bg-card border-2 border-accent shadow-[0_0_30px_rgba(251,191,36,0.2)]">
+                        <CardHeader>
+                          <Badge variant="secondary" className="w-fit bg-accent/20 text-accent font-mono text-lg px-4 py-1">{fusionResult.neologismo}</Badge>
+                          <CardDescription className="text-muted-foreground italic mt-2">{fusionResult.etimologia}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          <div className="bg-secondary/50 p-4 rounded border border-accent/20">
+                            <h4 className="font-tech text-accent text-sm mb-2">DEFINIZIONE</h4>
+                            <p className="text-white font-medium">{fusionResult.definizione}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-tech text-accent text-sm mb-3">MINI-SAGGIO</h4>
+                            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{fusionResult.mini_saggio}</p>
+                          </div>
+                          {fusionResult.applicazioni && (
+                            <div>
+                              <h4 className="font-tech text-accent text-sm mb-3">APPLICAZIONI PRATICHE</h4>
+                              <div className="grid gap-2">
+                                {fusionResult.applicazioni.map((app: string, i: number) => (
+                                  <div key={i} className="flex items-start gap-2 bg-secondary/30 p-3 rounded">
+                                    <TrendingUp className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                                    <span className="text-muted-foreground text-sm">{app}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <div className="border-t border-border pt-4">
+                            <p className="text-xs font-mono text-muted-foreground whitespace-pre-wrap">{fusionResult.bibliography}</p>
+                          </div>
+                          <p className="text-[10px] font-mono text-muted-foreground/50 italic">{fusionResult.provenance_note}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* === TAB: CONSEIL DES SAGES === */}
+              {activeTab === "council" && (
+                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in">
+                  <div className="text-center space-y-3">
+                    <Badge variant="outline" className="bg-white/10 text-white border-white/30 px-4 py-1 font-mono tracking-widest">CONSIGLIO DEI SAGGI</Badge>
+                    <h2 className="text-3xl font-bold text-white font-tech">Panel Multidisciplinare</h2>
+                    <p className="text-muted-foreground font-mono text-sm">Una domanda, molte prospettive, piste inedite</p>
+                  </div>
+
+                  <form onSubmit={handleCouncil} className="space-y-4">
+                    <Input placeholder="LA TUA DOMANDA COMPLESSA..." value={councilQuestion} onChange={e => setCouncilQuestion(e.target.value)} className="h-14 bg-background border-white/30 text-white font-tech text-lg" />
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground mb-2 block">SELEZIONA I SAGGI (clicca per attivare/disattivare)</label>
+                      <div className="flex flex-wrap gap-2">
+                        {sageOptions.map(sage => (
+                          <Button key={sage.id} type="button" variant={selectedSages.includes(sage.id) ? "secondary" : "outline"} size="sm"
+                            className={selectedSages.includes(sage.id) ? "bg-primary/20 text-primary border-primary/30" : "text-muted-foreground"}
+                            onClick={() => setSelectedSages(prev => prev.includes(sage.id) ? prev.filter(s => s !== sage.id) : [...prev, sage.id])}
+                          >{sage.name}</Button>
+                        ))}
                       </div>
-                      <div>
-                        <h3 className="font-tech font-bold text-lg text-white mb-1">SUGGESTIONS</h3>
-                        <p className="text-xs font-mono text-muted-foreground">ANALISI CONTESTUALE ATTIVA</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-card border border-white/5 hover:border-accent/50 transition-all cursor-pointer group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 relative z-10">
-                      <div className="w-16 h-16 rounded-full bg-secondary border border-white/10 flex items-center justify-center text-accent group-hover:scale-110 group-hover:border-accent transition-all duration-300 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                        <MessageSquare className="w-8 h-8" />
-                      </div>
-                      <div>
-                        <h3 className="font-tech font-bold text-lg text-white mb-1">CHAT PDF</h3>
-                        <p className="text-xs font-mono text-muted-foreground">INTERROGAZIONE DOCUMENTALE</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-card border border-white/5 hover:border-white/30 transition-all cursor-pointer group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 relative z-10">
-                      <div className="w-16 h-16 rounded-full bg-secondary border border-white/10 flex items-center justify-center text-white group-hover:scale-110 group-hover:border-white transition-all duration-300 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                        <Library className="w-8 h-8" />
-                      </div>
-                      <div>
-                        <h3 className="font-tech font-bold text-lg text-white mb-1">BIBLIOGRAFIA</h3>
-                        <p className="text-xs font-mono text-muted-foreground">GESTIONE FONTI AVANZATA</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <Button type="submit" disabled={councilLoading} className="w-full h-14 bg-white/10 border border-white/30 text-white font-bold font-tech tracking-wider text-lg hover:bg-white/20">
+                      {councilLoading ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>CONVOCAZIONE IN CORSO...</span> : "CONVOCA IL CONSIGLIO"}
+                    </Button>
+                  </form>
+
+                  {councilResult && councilResult.success && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8">
+                      {councilResult.sages?.map((sage: any, i: number) => (
+                        <Card key={i} className="bg-card border-l-4 border-l-white/30">
+                          <CardHeader className="pb-2">
+                            <span className="font-tech font-bold text-white">{sage.sage_name}</span>
+                          </CardHeader>
+                          <CardContent><p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{sage.response}</p></CardContent>
+                        </Card>
+                      ))}
+
+                      <Card className="bg-card border-2 border-white/50 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                        <CardHeader>
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-5 h-5 text-white" />
+                            <CardTitle className="font-tech text-white">SINTESI DEL MODERATORE</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <p className="text-white leading-relaxed whitespace-pre-wrap">{councilResult.synthesis}</p>
+                          <div className="border-t border-border pt-4">
+                            <p className="text-xs font-mono text-muted-foreground whitespace-pre-wrap">{councilResult.bibliography}</p>
+                          </div>
+                          <p className="text-[10px] font-mono text-muted-foreground/50 italic">{councilResult.provenance_note}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

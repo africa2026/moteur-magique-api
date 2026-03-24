@@ -567,6 +567,41 @@ def list_thinkers():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@advanced_bp.route('/thinkers', methods=['POST'])
+def add_thinker():
+    try:
+        data = request.get_json()
+        full_name = data.get('full_name', '').strip()
+        if not full_name:
+            return jsonify({'success': False, 'error': 'Nome richiesto'}), 400
+
+        thinker_id = full_name.lower().replace(' ', '_').replace("'", "")
+        birth_year = int(data.get('birth_year', 0))
+        death_year = int(data.get('death_year', 0))
+        description = data.get('description', '')
+        key_works = data.get('key_works', [])
+
+        from src.citation_engine import add_custom_thinker
+        result = add_custom_thinker(thinker_id, full_name, birth_year, death_year, description, key_works)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Errore add thinker: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@advanced_bp.route('/thinkers/<thinker_id>', methods=['DELETE'])
+def remove_thinker(thinker_id):
+    try:
+        from src.citation_engine import delete_custom_thinker
+        result = delete_custom_thinker(thinker_id)
+        if not result.get('success'):
+            return jsonify(result), 400
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Errore delete thinker: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @advanced_bp.route('/sages', methods=['GET'])
 def list_sages():
     try:

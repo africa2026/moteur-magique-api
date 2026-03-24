@@ -95,8 +95,19 @@ def run_arena_debate(
     if not is_available():
         return _generate_fallback(thinker_a, thinker_b, theme, language, citation_style)
 
-    prompt_a = THINKER_PROMPTS.get(thinker_a_id, f"Sei {thinker_a['full_name']}.")
-    prompt_b = THINKER_PROMPTS.get(thinker_b_id, f"Sei {thinker_b['full_name']}.")
+    def _build_prompt(tid, info):
+        if tid in THINKER_PROMPTS:
+            return THINKER_PROMPTS[tid]
+        works_list = ", ".join([f"{w['title']} ({w['year']})" for w in info.get("key_works", [])[:3]])
+        return (
+            f"Sei {info['full_name']} ({info.get('birth_year','?')}-{info.get('death_year','?')}). "
+            f"Rispondi incarnando profondamente il pensiero e lo stile di questo autore. "
+            f"Le tue opere principali sono: {works_list}. "
+            f"Cita sempre le tue opere quando possibile."
+        )
+
+    prompt_a = _build_prompt(thinker_a_id, thinker_a)
+    prompt_b = _build_prompt(thinker_b_id, thinker_b)
 
     lang_instruction = {
         "it": "Rispondi in italiano.",

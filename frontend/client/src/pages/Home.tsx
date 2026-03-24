@@ -50,6 +50,9 @@ export default function Home() {
   const [arenaTheme, setArenaTheme] = useState("");
   const [arenaResult, setArenaResult] = useState<any>(null);
   const [arenaLoading, setArenaLoading] = useState(false);
+  const [showAddThinker, setShowAddThinker] = useState(false);
+  const [newThinker, setNewThinker] = useState({ full_name: "", birth_year: "", death_year: "", work_title: "", work_year: "" });
+  const [customThinkers, setCustomThinkers] = useState<any[]>([]);
 
   // Fusion state
   const [conceptA, setConceptA] = useState("");
@@ -146,7 +149,41 @@ export default function Home() {
     { id: "jean_piaget", name: "Jean Piaget" },
     { id: "lev_vygotsky", name: "Lev Vygotsky" },
     { id: "edith_stein", name: "Edith Stein" },
+    ...customThinkers,
   ];
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/advanced/thinkers`).then(r => r.json()).then(data => {
+      if (data.success && data.thinkers) {
+        const builtinIds = ["don_bosco","maria_montessori","paulo_freire","hannah_arendt","tommaso_aquino","jean_piaget","lev_vygotsky","edith_stein"];
+        const custom = data.thinkers.filter((t: any) => !builtinIds.includes(t.id)).map((t: any) => ({ id: t.id, name: t.name }));
+        setCustomThinkers(custom);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleAddThinker = async () => {
+    if (!newThinker.full_name.trim()) return;
+    try {
+      const works = newThinker.work_title ? [{ title: newThinker.work_title, year: parseInt(newThinker.work_year) || 2000, type: "book" }] : [];
+      const resp = await fetch(`${API_URL}/api/advanced/thinkers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: newThinker.full_name,
+          birth_year: parseInt(newThinker.birth_year) || 0,
+          death_year: parseInt(newThinker.death_year) || 0,
+          key_works: works,
+        }),
+      });
+      const data = await resp.json();
+      if (data.success) {
+        setCustomThinkers(prev => [...prev, { id: data.id, name: newThinker.full_name }]);
+        setNewThinker({ full_name: "", birth_year: "", death_year: "", work_title: "", work_year: "" });
+        setShowAddThinker(false);
+      }
+    } catch (err) { console.error("Add thinker error:", err); }
+  };
 
   const sageOptions = [
     { id: "theologian", name: "Teologo" },
@@ -515,6 +552,32 @@ export default function Home() {
                       ) : "FIGHT!"}
                     </Button>
                   </form>
+
+                  <div className="flex justify-center">
+                    <Button variant="outline" size="sm" onClick={() => setShowAddThinker(!showAddThinker)} className="text-muted-foreground hover:text-primary border-dashed border-white/20 hover:border-primary/50 font-mono text-xs">
+                      + AGGIUNGI PENSATORE PERSONALIZZATO
+                    </Button>
+                  </div>
+
+                  {showAddThinker && (
+                    <Card className="bg-card border border-primary/20 animate-in fade-in slide-in-from-top-4">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="font-tech text-primary text-sm tracking-widest">NUOVO PENSATORE</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <Input placeholder="Nome completo (es: Jacques Maritain)" value={newThinker.full_name} onChange={e => setNewThinker(p => ({...p, full_name: e.target.value}))} className="bg-background border-white/20 text-white" />
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input placeholder="Anno nascita" type="number" value={newThinker.birth_year} onChange={e => setNewThinker(p => ({...p, birth_year: e.target.value}))} className="bg-background border-white/20 text-white" />
+                          <Input placeholder="Anno morte (0 se vivente)" type="number" value={newThinker.death_year} onChange={e => setNewThinker(p => ({...p, death_year: e.target.value}))} className="bg-background border-white/20 text-white" />
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <Input placeholder="Opera principale" value={newThinker.work_title} onChange={e => setNewThinker(p => ({...p, work_title: e.target.value}))} className="col-span-2 bg-background border-white/20 text-white" />
+                          <Input placeholder="Anno" type="number" value={newThinker.work_year} onChange={e => setNewThinker(p => ({...p, work_year: e.target.value}))} className="bg-background border-white/20 text-white" />
+                        </div>
+                        <Button onClick={handleAddThinker} className="w-full bg-primary text-primary-foreground font-tech">SALVA PENSATORE</Button>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {arenaResult && arenaResult.success && (
                     <div className="space-y-6">

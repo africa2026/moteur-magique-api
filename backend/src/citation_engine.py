@@ -298,3 +298,65 @@ def get_thinkers_list() -> List[Dict]:
 
 def get_thinker_info(thinker_id: str) -> Optional[Dict]:
     return THINKERS_DB.get(thinker_id)
+
+
+def add_custom_thinker(
+    thinker_id: str,
+    full_name: str,
+    birth_year: int,
+    death_year: int,
+    description: str,
+    key_works: List[Dict],
+) -> Dict:
+    THINKERS_DB[thinker_id] = {
+        "full_name": full_name,
+        "birth_year": birth_year,
+        "death_year": death_year,
+        "key_works": key_works,
+        "custom": True,
+    }
+    _save_custom_thinkers()
+    return {"success": True, "id": thinker_id, "name": full_name}
+
+
+def delete_custom_thinker(thinker_id: str) -> Dict:
+    info = THINKERS_DB.get(thinker_id)
+    if not info:
+        return {"success": False, "error": "Pensatore non trovato"}
+    if not info.get("custom"):
+        return {"success": False, "error": "Impossibile eliminare un pensatore predefinito"}
+    del THINKERS_DB[thinker_id]
+    _save_custom_thinkers()
+    return {"success": True}
+
+
+def _get_custom_path():
+    import os
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+    os.makedirs(data_dir, exist_ok=True)
+    return os.path.join(data_dir, "custom_thinkers.json")
+
+
+def _save_custom_thinkers():
+    custom = {k: v for k, v in THINKERS_DB.items() if v.get("custom")}
+    try:
+        with open(_get_custom_path(), "w", encoding="utf-8") as f:
+            json.dump(custom, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Error saving custom thinkers: {e}")
+
+
+def _load_custom_thinkers():
+    try:
+        path = _get_custom_path()
+        import os
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                custom = json.load(f)
+                THINKERS_DB.update(custom)
+                logger.info(f"Loaded {len(custom)} custom thinkers")
+    except Exception as e:
+        logger.error(f"Error loading custom thinkers: {e}")
+
+
+_load_custom_thinkers()

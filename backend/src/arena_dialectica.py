@@ -117,14 +117,33 @@ def run_arena_debate(
         "pt": "Responda em português.",
     }.get(language, "Rispondi in italiano.")
 
+    # === RECHERCHE DANS LES VRAIES SOURCES ===
+    real_sources_a = _fetch_real_sources(thinker_a["full_name"], theme)
+    real_sources_b = _fetch_real_sources(thinker_b["full_name"], theme)
+
+    source_context_a = ""
+    if real_sources_a:
+        source_context_a = "\n\nFONTI REALI dai tuoi scritti e studi su di te (USA QUESTE CITAZIONI):\n" + "\n".join(
+            [f"- [{s.get('source','')}] {s.get('title','')}: \"{s.get('abstract','')[:300]}\"" for s in real_sources_a[:5]]
+        )
+
+    source_context_b = ""
+    if real_sources_b:
+        source_context_b = "\n\nFONTI REALI dai tuoi scritti e studi su di te (USA QUESTE CITAZIONI):\n" + "\n".join(
+            [f"- [{s.get('source','')}] {s.get('title','')}: \"{s.get('abstract','')[:300]}\"" for s in real_sources_b[:5]]
+        )
+
     rounds = []
-    conversation_history = []
 
     round_prompts = [
-        (thinker_a_id, prompt_a, f"Esponi la tua posizione sul tema: '{theme}'. Sii profondo ma conciso (200-300 parole). Cita almeno un'opera tua. {lang_instruction}"),
-        (thinker_b_id, prompt_b, f"Rispondi alla posizione appena esposta sul tema: '{theme}'. Riconosci i punti di forza ma porta la tua prospettiva diversa (200-300 parole). Cita almeno un'opera tua. {lang_instruction}"),
-        (thinker_a_id, prompt_a, f"Rispondi alla critica ricevuta. Approfondisci un aspetto specifico dove le vostre visioni convergono o divergono (200-300 parole). {lang_instruction}"),
-        (thinker_b_id, prompt_b, f"Approfondisci la tua posizione tenendo conto del dialogo fin qui. Proponi un elemento nuovo (200-300 parole). {lang_instruction}"),
+        (thinker_a_id, prompt_a + source_context_a,
+         f"Esponi la tua posizione sul tema: '{theme}'. Sii profondo (300-400 parole). CITA ESPLICITAMENTE i testi reali forniti sopra, con titolo e anno. {lang_instruction}"),
+        (thinker_b_id, prompt_b + source_context_b,
+         f"Rispondi alla posizione appena esposta sul tema: '{theme}'. Riconosci i punti di forza ma porta la tua prospettiva diversa (300-400 parole). CITA i tuoi testi reali. {lang_instruction}"),
+        (thinker_a_id, prompt_a + source_context_a,
+         f"Rispondi alla critica ricevuta. Approfondisci un aspetto specifico dove le vostre visioni convergono o divergono (300-400 parole). Cita fonti specifiche. {lang_instruction}"),
+        (thinker_b_id, prompt_b + source_context_b,
+         f"Approfondisci la tua posizione tenendo conto del dialogo fin qui. Proponi un elemento nuovo e sorprendente (300-400 parole). Cita fonti. {lang_instruction}"),
     ]
 
     for speaker_id, system_prompt, user_prompt in round_prompts:
@@ -153,13 +172,13 @@ def run_arena_debate(
             "Sei un brillante filosofo dell'educazione. Devi creare una SINTESI INEDITA "
             "che non è la semplice somma delle due posizioni, ma qualcosa di completamente nuovo "
             "che emerge dal dialogo. Crea un concetto originale con un nome, una definizione "
-            "e 3 implicazioni pratiche. {}"
+            "e 3 implicazioni pratiche. Cita le fonti reali menzionate nel dibattito. {}"
         ).format(lang_instruction)},
         {"role": "user", "content": (
             f"Tema: {theme}\n\n"
             f"Dialogo tra {thinker_a['full_name']} e {thinker_b['full_name']}:\n\n"
             + "\n\n".join([f"[{r['speaker']}]: {r['text']}" for r in rounds])
-            + "\n\nGenera una SINTESI INEDITA (400-500 parole) che faccia emergere qualcosa di completamente nuovo."
+            + "\n\nGenera una SINTESI INEDITA (400-500 parole) che faccia emergere qualcosa di completamente nuovo. Cita le fonti reali."
         )},
     ]
     synthesis = chat_completion(synthesis_messages, temperature=0.9, max_tokens=1200)
@@ -175,6 +194,16 @@ def run_arena_debate(
                 "title": work["title"],
                 "year": work["year"],
                 "type": work["type"],
+            })
+
+    for rs in real_sources_a + real_sources_b:
+        if rs.get("title") and rs.get("url"):
+            sources.append({
+                "authors": rs.get("authors", []),
+                "title": rs.get("title", ""),
+                "year": rs.get("year", "n.d."),
+                "url": rs.get("url", ""),
+                "type": "web",
             })
 
     bibliography = generate_bibliography(sources, citation_style)
@@ -239,3 +268,21 @@ def _generate_fallback(thinker_a, thinker_b, theme, language, citation_style):
         "citation_style": citation_style,
         "timestamp": datetime.now().isoformat(),
     }
+
+
+def _fetch_real_sources(thinker_name: str, theme: str) -> List[Dict]:
+    try:
+        from src.multi_source_search import search_engine
+        query = f"{thinker_name} {theme}"
+        logger.info(f"Arena: searching real sources for '{query}'")
+        results = search_engine.search(query, filters={"sources": ["corpus_salesiano", "semantic_scholar", "wikipedia"]})
+        if results and results.get("success"):
+            all_results = results.get("results", {}).get("results", results.get("results", []))
+            if isinstance(all_results, list):
+                relevant = [r for r in all_results if r.get("relevance_score", 0) >= 50][:5]
+                logger.info(f"Arena: found {len(relevant)} real sources for {thinker_name}")
+                return relevant
+        return []
+    except Exception as e:
+        logger.warning(f"Arena: failed to fetch real sources for {thinker_name}: {e}")
+        return []

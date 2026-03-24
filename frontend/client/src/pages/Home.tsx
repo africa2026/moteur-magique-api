@@ -473,63 +473,96 @@ export default function Home() {
                 </>
               )}
 
-              {/* === TAB: ARENA DIALECTICA === */}
+              {/* === TAB: ARENA DIALECTICA - GAMIFIED === */}
               {activeTab === "arena" && (
                 <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in">
-                  <div className="text-center space-y-3">
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 px-4 py-1 font-mono tracking-widest">ARENA DIALECTICA</Badge>
-                    <h2 className="text-3xl font-bold text-white font-tech">Dialogo tra Pensatori</h2>
-                    <p className="text-muted-foreground font-mono text-sm">Due menti, un tema, una sintesi inedita</p>
+                  <div className="text-center space-y-3 relative">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-red-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+                    <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30 px-6 py-2 font-mono tracking-[0.3em] text-lg animate-pulse">ARENA DIALECTICA</Badge>
+                    <h2 className="text-4xl md:text-5xl font-bold text-white font-tech tracking-tight">BATTAGLIA delle IDEE</h2>
+                    <p className="text-muted-foreground font-mono text-sm">Scegli i tuoi campioni. Lancia il dibattito. Scopri la sintesi.</p>
                   </div>
 
-                  <form onSubmit={handleArenaDebate} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs font-mono text-muted-foreground mb-1 block">PENSATORE A</label>
-                        <select value={thinkerA} onChange={e => setThinkerA(e.target.value)} className="w-full h-12 bg-background border border-border rounded-md px-3 text-white font-mono">
+                  <form onSubmit={handleArenaDebate} className="space-y-6">
+                    <div className="grid grid-cols-5 gap-4 items-center">
+                      <div className="col-span-2">
+                        <div className="text-center mb-2">
+                          <span className="text-xs font-mono text-red-400 tracking-widest">CAMPIONE A</span>
+                        </div>
+                        <select value={thinkerA} onChange={e => setThinkerA(e.target.value)} className="w-full h-14 bg-red-500/5 border-2 border-red-500/30 rounded-lg px-3 text-white font-tech text-lg text-center hover:border-red-500/60 transition-all">
                           {thinkerOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                         </select>
                       </div>
-                      <div>
-                        <label className="text-xs font-mono text-muted-foreground mb-1 block">PENSATORE B</label>
-                        <select value={thinkerB} onChange={e => setThinkerB(e.target.value)} className="w-full h-12 bg-background border border-border rounded-md px-3 text-white font-mono">
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-red-500/20 border-2 border-red-500/50 flex items-center justify-center text-3xl font-bold text-red-400 animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.3)]">VS</div>
+                      </div>
+                      <div className="col-span-2">
+                        <div className="text-center mb-2">
+                          <span className="text-xs font-mono text-blue-400 tracking-widest">CAMPIONE B</span>
+                        </div>
+                        <select value={thinkerB} onChange={e => setThinkerB(e.target.value)} className="w-full h-14 bg-blue-500/5 border-2 border-blue-500/30 rounded-lg px-3 text-white font-tech text-lg text-center hover:border-blue-500/60 transition-all">
                           {thinkerOptions.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                         </select>
                       </div>
                     </div>
-                    <Input placeholder="TEMA DEL DIBATTITO..." value={arenaTheme} onChange={e => setArenaTheme(e.target.value)} className="h-14 bg-background border-primary/30 text-white font-tech text-lg" />
-                    <Button type="submit" disabled={arenaLoading} className="w-full h-14 bg-primary text-primary-foreground font-bold font-tech tracking-wider text-lg">
-                      {arenaLoading ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></span>GENERAZIONE IN CORSO...</span> : "AVVIA DIBATTITO"}
+                    <Input placeholder="TEMA DELLA BATTAGLIA..." value={arenaTheme} onChange={e => setArenaTheme(e.target.value)} className="h-16 bg-background border-2 border-white/20 text-white font-tech text-xl text-center tracking-wide placeholder:text-white/20" />
+                    <Button type="submit" disabled={arenaLoading} className="w-full h-16 bg-gradient-to-r from-red-600 via-purple-600 to-blue-600 text-white font-bold font-tech tracking-[0.2em] text-xl rounded-lg shadow-[0_0_40px_rgba(147,51,234,0.4)] hover:shadow-[0_0_60px_rgba(147,51,234,0.6)] transition-all hover:scale-[1.02]">
+                      {arenaLoading ? (
+                        <span className="flex items-center gap-3">
+                          <span className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></span>
+                          BATTAGLIA IN CORSO...
+                        </span>
+                      ) : "FIGHT!"}
                     </Button>
                   </form>
 
                   {arenaResult && arenaResult.success && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8">
-                      {arenaResult.rounds?.map((round: any, i: number) => (
-                        <Card key={i} className={`bg-card border-l-4 ${round.speaker_id === arenaResult.thinker_a?.id ? 'border-l-primary' : 'border-l-accent'}`}>
-                          <CardHeader className="pb-2">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="font-mono text-xs">ROUND {round.round}</Badge>
-                              <span className="font-tech font-bold text-white">{round.speaker}</span>
+                    <div className="space-y-6">
+                      {arenaResult.rounds?.map((round: any, i: number) => {
+                        const isA = i % 2 === 0;
+                        const color = isA ? "red" : "blue";
+                        const roundLabels = ["APERTURA", "RISPOSTA", "CONTRATTACCO", "APPROFONDIMENTO", "FINALE"];
+                        return (
+                          <div key={i} className={`animate-in fade-in slide-in-from-${isA ? 'left' : 'right'}-8`} style={{animationDelay: `${i * 200}ms`}}>
+                            <div className={`flex items-center gap-3 mb-3 ${isA ? '' : 'flex-row-reverse'}`}>
+                              <div className={`w-12 h-12 rounded-full bg-${color}-500/20 border-2 border-${color}-500/50 flex items-center justify-center font-bold text-${color}-400 text-lg shadow-[0_0_15px_rgba(${isA ? '239,68,68' : '59,130,246'},0.3)]`}>
+                                {round.speaker?.split(' ').map((w: string) => w[0]).join('').slice(0,2)}
+                              </div>
+                              <div className={isA ? '' : 'text-right'}>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={`bg-${color}-500/20 text-${color}-400 border-${color}-500/30 font-mono text-[10px]`}>ROUND {round.round}</Badge>
+                                  <span className="text-[10px] font-mono text-muted-foreground/50 uppercase">{roundLabels[i] || ""}</span>
+                                </div>
+                                <span className="font-tech font-bold text-white text-lg">{round.speaker}</span>
+                              </div>
                             </div>
-                          </CardHeader>
-                          <CardContent><p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{round.text}</p></CardContent>
-                        </Card>
-                      ))}
-
-                      <Card className="bg-card border-2 border-primary shadow-[0_0_30px_rgba(251,191,36,0.2)]">
-                        <CardHeader>
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-5 h-5 text-primary" />
-                            <CardTitle className="font-tech text-primary">SINTESI INEDITA</CardTitle>
+                            <Card className={`bg-card/80 backdrop-blur border-l-4 border-${color}-500/50 shadow-[0_0_20px_rgba(${isA ? '239,68,68' : '59,130,246'},0.1)]`}>
+                              <CardContent className="p-5">
+                                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-[15px]">{round.text}</p>
+                              </CardContent>
+                            </Card>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <p className="text-white leading-relaxed whitespace-pre-wrap">{arenaResult.synthesis}</p>
-                          <div className="border-t border-border pt-4">
+                        );
+                      })}
+
+                      <div className="relative py-8">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-primary/30"></div></div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-background px-6 py-2 rounded-full border-2 border-primary text-primary font-tech tracking-[0.3em] text-sm shadow-[0_0_30px_rgba(251,191,36,0.3)] animate-pulse">SINTESI INEDITA</span>
+                        </div>
+                      </div>
+
+                      <Card className="bg-gradient-to-br from-primary/10 via-card to-accent/10 border-2 border-primary shadow-[0_0_50px_rgba(251,191,36,0.15)]">
+                        <CardContent className="p-8 space-y-6">
+                          <div className="flex justify-center mb-4">
+                            <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+                          </div>
+                          <p className="text-white leading-relaxed whitespace-pre-wrap text-lg text-center">{arenaResult.synthesis}</p>
+                          <div className="border-t border-border pt-6 mt-6">
+                            <h4 className="font-tech text-primary text-xs tracking-widest mb-3">BIBLIOGRAFIA</h4>
                             <p className="text-xs font-mono text-muted-foreground whitespace-pre-wrap">{arenaResult.bibliography}</p>
                           </div>
-                          <p className="text-[10px] font-mono text-muted-foreground/50 italic">{arenaResult.provenance_note}</p>
+                          <p className="text-[10px] font-mono text-muted-foreground/40 italic text-center">{arenaResult.provenance_note}</p>
                         </CardContent>
                       </Card>
                     </div>

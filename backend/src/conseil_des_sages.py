@@ -201,10 +201,10 @@ def _generate_fallback(question, sage_ids, language, citation_style):
             "1. Una pedagogia dell'empatia strutturale\n"
             "2. Il dialogo intergenerazionale come metodo di ricerca\n"
             "3. La spiritualità come risorsa di resilienza educativa\n\n"
-            "⚠️ Per un'analisi completa, configurez OPENAI_API_KEY dans Render."
+            "⚠️ Per un'analisi completa, configurare GEMINI_API_KEY o GROQ_API_KEY in Render."
         ),
         "bibliography": generate_bibliography([], citation_style),
-        "provenance_note": "[Mode démonstration - sans clé API OpenAI]",
+        "provenance_note": "[Modalità dimostrazione - nessuna chiave API configurata]",
         "citation_style": citation_style,
         "timestamp": datetime.now().isoformat(),
     }

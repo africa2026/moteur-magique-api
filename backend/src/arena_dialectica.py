@@ -220,11 +220,11 @@ def _generate_fallback(thinker_a, thinker_b, theme, language, citation_style):
             f"Dal dialogo tra {thinker_a['full_name']} e {thinker_b['full_name']} emerge un concetto nuovo: "
             f"l'educatore non è né solo 'padre amorevole' né solo 'osservatore scientifico', "
             f"ma un accompagnatore che calibra la sua presenza in base alla maturità del giovane.\n\n"
-            f"⚠️ Per generare un dibattito completo con l'IA, configurez la clé API OpenAI "
-            f"dans les variables d'environnement Render (OPENAI_API_KEY)."
+            f"⚠️ Per generare un dibattito completo, configurare GEMINI_API_KEY o GROQ_API_KEY "
+            f"nelle variabili d'ambiente di Render."
         ),
         "bibliography": bibliography,
-        "provenance_note": "[Mode démonstration - sans clé API OpenAI]",
+        "provenance_note": "[Modalità dimostrazione - nessuna chiave API configurata]",
         "citation_style": citation_style,
         "timestamp": datetime.now().isoformat(),
     }

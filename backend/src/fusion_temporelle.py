@@ -133,8 +133,8 @@ def _generate_fallback(concept_a: str, concept_b: str, language: str, citation_s
             f"Il concetto di '{concept_a}' e quello di '{concept_b}' sono stati tradizionalmente "
             f"considerati in ambiti separati. Eppure, una lettura trasversale rivela connessioni "
             f"profonde che meritano di essere esplorate.\n\n"
-            f"⚠️ Per generare un saggio completo con l'IA, configurez la clé API OpenAI "
-            f"dans les variables d'environnement Render (OPENAI_API_KEY)."
+            f"⚠️ Per generare un saggio completo, configurare GEMINI_API_KEY o GROQ_API_KEY "
+            f"nelle variabili d'ambiente di Render."
         ),
         "applicazioni": [
             "Ricerca interdisciplinare",
@@ -142,7 +142,7 @@ def _generate_fallback(concept_a: str, concept_b: str, language: str, citation_s
             "Progettazione curricolare innovativa",
         ],
         "bibliography": bibliography,
-        "provenance_note": "[Mode démonstration - sans clé API OpenAI]",
+        "provenance_note": "[Modalità dimostrazione - nessuna chiave API configurata]",
         "citation_style": citation_style,
         "timestamp": datetime.now().isoformat(),
     }

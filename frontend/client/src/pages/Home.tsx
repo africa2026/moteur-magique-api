@@ -80,9 +80,9 @@ export default function Home() {
 
       const data = await response.json();
       
-      // Transform API response to UI format
-      // NO MOCK DATA - ONLY REAL RESULTS
-      const transformedResults = data.results.map((item: any, index: number) => ({
+      const rawResults = data.results?.results || data.results || [];
+      const resultArray = Array.isArray(rawResults) ? rawResults : [];
+      const transformedResults = resultArray.map((item: any, index: number) => ({
         title: item.title || "Documento senza titolo",
         source: item.source || "Fonte sconosciuta",
         type: item.type || "DOCUMENTO",

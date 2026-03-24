@@ -13,6 +13,7 @@ from datetime import datetime
 
 from src.llm_provider import chat_completion, is_available, get_model_name
 from src.citation_engine import generate_bibliography, create_ai_provenance_note
+from src.style_guard import STYLE_GUARD
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def generate_fusion(
             "Sei un geniale filosofo e linguista che crea NUOVI CONCETTI combinando idee "
             "di epoche diverse. Il tuo compito è generare qualcosa di completamente INEDITO "
             "che non esisteva prima nella letteratura. Sii audace, creativo e rigoroso. "
-            + lang_instruction
+            + lang_instruction + "\n" + STYLE_GUARD
         )},
         {"role": "user", "content": (
             f"Fondi questi due concetti in qualcosa di completamente nuovo:\n\n"

@@ -16,6 +16,7 @@ from datetime import datetime
 
 from src.llm_provider import chat_completion, is_available, get_model_name
 from src.citation_engine import generate_bibliography, create_ai_provenance_note
+from src.style_guard import STYLE_GUARD, MODERATOR_STYLE_GUARD
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +183,7 @@ def convene_council(
         adversary_note = f" I tuoi avversari intellettuali in questo dibattito sono: {', '.join(adversary_names)}." if adversary_names else ""
 
         messages = [
-            {"role": "system", "content": profile["prompt"] + adversary_note + " " + lang_instruction},
+            {"role": "system", "content": profile["prompt"] + adversary_note + " " + lang_instruction + "\n" + STYLE_GUARD},
             {"role": "user", "content": (
                 f"ROUND 1 - POSIZIONE INIZIALE.\n"
                 f"Rispondi a questa domanda dalla tua prospettiva (300-400 parole).\n"
@@ -225,7 +226,7 @@ def convene_council(
         target_text = next((r["response"] for r in responses if r["sage_id"] == target_id), "")
 
         messages = [
-            {"role": "system", "content": attacker["prompt"] + " " + lang_instruction},
+            {"role": "system", "content": attacker["prompt"] + " " + lang_instruction + "\n" + STYLE_GUARD},
             {"role": "user", "content": (
                 f"ROUND 2 - ENGAGEMENT DIRETTO contro {target['name']}.\n\n"
                 f"Ecco cosa ha detto {target['name']}:\n\"{target_text[:800]}\"\n\n"
@@ -261,20 +262,20 @@ def convene_council(
             "Identifichi: (1) le contraddizioni logiche non affrontate, "
             "(2) le fonti contestate o inventate, (3) le domande schivate. "
             "NON cerchi consenso. Cerchi VERITÀ attraverso il conflitto. " + lang_instruction
+            + "\n" + MODERATOR_STYLE_GUARD
         )},
         {"role": "user", "content": (
             f"Domanda originale: {question}\n\n"
             f"Dibattito completo:\n{all_debate[:4000]}\n\n"
-            f"Ora genera la MAPPA DELLE DIVERGENZE (500-600 parole):\n\n"
-            f"1. **PUNTI DI ACCORDO GENUINO** (pochi, preziosi - solo quelli dove TUTTI concordano davvero)\n\n"
-            f"2. **CONTRADDIZIONI IRRIDUCIBILI** (3-5 punti dove i partecipanti sono INCOMPATIBILI e nessuno ha torto: "
-            f"sono semplicemente prospettive inconciliabili. Spiega PERCHÉ sono irriducibili.)\n\n"
-            f"3. **DOMANDE GENERATE MA NON RISOLTE** (5-7 domande NUOVE che il dibattito ha fatto emergere "
-            f"e che NESSUNO ha saputo risolvere. Queste sono il VERO valore euristico.)\n\n"
-            f"4. **FONTI CONTESTATE** (citazioni che un partecipante ha usato e un altro ha contestato)\n\n"
-            f"5. **IL PUNTO MORTO** (identifica il momento dove il dibattito si è arenato su qualcosa di insuperabile. "
-            f"Ammetti: 'Qui la discussione ha raggiunto un punto morto insuperabile perché...')\n\n"
-            f"Sii onesto, spietato, e NON cercare di tutto risolvere."
+            f"Ora genera la MAPPA DELLE DIVERGENZE come un saggio critico di 500-600 parole.\n\n"
+            f"Scrivi in PROSA DISCORSIVA, senza elenchi puntati né numerazioni.\n"
+            f"Il tuo testo deve coprire questi aspetti, ma integrati in un flusso narrativo naturale:\n"
+            f"- I rarissimi punti di accordo genuino\n"
+            f"- Le contraddizioni irriducibili (spiega PERCHÉ sono irriducibili, non limitarti a elencarle)\n"
+            f"- Le domande nuove che il dibattito ha generato senza risolvere\n"
+            f"- Le fonti che un partecipante ha usato e un altro ha contestato\n"
+            f"- Il momento preciso in cui il dibattito ha raggiunto un punto morto insuperabile\n\n"
+            f"Scrivi come un editorialista, non come un rapporto tecnico."
         )},
     ]
 

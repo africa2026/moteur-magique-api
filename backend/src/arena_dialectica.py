@@ -16,6 +16,7 @@ from src.citation_engine import (
     get_thinker_info, format_citation, generate_bibliography,
     create_ai_provenance_note, THINKERS_DB,
 )
+from src.style_guard import STYLE_GUARD, MODERATOR_STYLE_GUARD
 
 logger = logging.getLogger(__name__)
 
@@ -136,14 +137,14 @@ def run_arena_debate(
     rounds = []
 
     round_prompts = [
-        (thinker_a_id, prompt_a + source_context_a,
-         f"Esponi la tua posizione sul tema: '{theme}'. Sii profondo (300-400 parole). CITA ESPLICITAMENTE i testi reali forniti sopra, con titolo e anno. {lang_instruction}"),
-        (thinker_b_id, prompt_b + source_context_b,
-         f"Rispondi alla posizione appena esposta sul tema: '{theme}'. Riconosci i punti di forza ma porta la tua prospettiva diversa (300-400 parole). CITA i tuoi testi reali. {lang_instruction}"),
-        (thinker_a_id, prompt_a + source_context_a,
-         f"Rispondi alla critica ricevuta. Approfondisci un aspetto specifico dove le vostre visioni convergono o divergono (300-400 parole). Cita fonti specifiche. {lang_instruction}"),
-        (thinker_b_id, prompt_b + source_context_b,
-         f"Approfondisci la tua posizione tenendo conto del dialogo fin qui. Proponi un elemento nuovo e sorprendente (300-400 parole). Cita fonti. {lang_instruction}"),
+        (thinker_a_id, prompt_a + source_context_a + "\n" + STYLE_GUARD,
+         f"Esponi la tua posizione sul tema: '{theme}'. Sii profondo (300-400 parole). CITA ESPLICITAMENTE i testi reali forniti sopra, con titolo e anno. Scrivi in prosa fluida senza elenchi puntati. {lang_instruction}"),
+        (thinker_b_id, prompt_b + source_context_b + "\n" + STYLE_GUARD,
+         f"Rispondi alla posizione appena esposta sul tema: '{theme}'. Riconosci i punti di forza ma porta la tua prospettiva diversa (300-400 parole). CITA i tuoi testi reali. Scrivi in prosa discorsiva. {lang_instruction}"),
+        (thinker_a_id, prompt_a + source_context_a + "\n" + STYLE_GUARD,
+         f"Rispondi alla critica ricevuta. Approfondisci un aspetto specifico dove le vostre visioni convergono o divergono (300-400 parole). Cita fonti specifiche. Varia il ritmo della scrittura. {lang_instruction}"),
+        (thinker_b_id, prompt_b + source_context_b + "\n" + STYLE_GUARD,
+         f"Approfondisci la tua posizione tenendo conto del dialogo fin qui. Proponi un elemento nuovo e sorprendente (300-400 parole). Cita fonti. Scrivi con passione, non meccanicamente. {lang_instruction}"),
     ]
 
     for speaker_id, system_prompt, user_prompt in round_prompts:
@@ -172,8 +173,10 @@ def run_arena_debate(
             "Sei un brillante filosofo dell'educazione. Devi creare una SINTESI INEDITA "
             "che non è la semplice somma delle due posizioni, ma qualcosa di completamente nuovo "
             "che emerge dal dialogo. Crea un concetto originale con un nome, una definizione "
-            "e 3 implicazioni pratiche. Cita le fonti reali menzionate nel dibattito. {}"
-        ).format(lang_instruction)},
+            "e 3 implicazioni pratiche. Cita le fonti reali menzionate nel dibattito. "
+            "Scrivi in PROSA FLUIDA, senza elenchi puntati né grassetti. "
+            "Come un saggio breve, non come un rapporto. {}"
+        ).format(lang_instruction) + "\n" + MODERATOR_STYLE_GUARD},
         {"role": "user", "content": (
             f"Tema: {theme}\n\n"
             f"Dialogo tra {thinker_a['full_name']} e {thinker_b['full_name']}:\n\n"

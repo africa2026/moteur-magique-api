@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Conseil des Sages - Panel multidisciplinaire IA
-Moteur de Rédaction Magique v5.0
+Conseil des Sages v6.0 - Panel multidisciplinaire IA
+Moteur de Rédaction Magique v6.0
 
-Convoque 3-5 sages virtuels de disciplines differentes
-pour repondre a une question complexe avec synthese finale.
+Architecture de débat avec:
+- Profils riches et asymétriques (adversaires/alliés)
+- Engagements directs (agents se challengent mutuellement)
+- Modérateur provocateur (pas pacificateur)
+- Synthèse = carte des divergences irréductibles
 """
 
 import logging
@@ -18,57 +21,129 @@ logger = logging.getLogger(__name__)
 
 SAGE_PROFILES = {
     "theologian": {
-        "name": "Il Teologo",
+        "name": "Don Giuseppe Brocardo, SDB",
         "icon": "book-open",
+        "background": "Salesiano dal 1965, formazione pre-conciliare, 20 anni in Africa (Etiopia, Kenya), ora a Torino-Valdocco.",
+        "perspective": "insider difensivo",
+        "adversaries": ["philosopher", "sociologist"],
+        "allies": ["historian"],
+        "trigger_words": ["paternalismo", "colonialismo pedagogico", "imposizione"],
+        "style_rules": "Periodi lunghi, subordinate pesanti, citazioni dal Magistero e dalle Costituzioni SDB. Tono: 'Pur riconoscendo... tuttavia...'",
+        "must_cite": "Costituzioni SDB, Memorie Biografiche, Lettere di Don Bosco, Amoris Laetitia, Gravissimum Educationis",
         "prompt": (
-            "Sei un teologo esperto di dottrina sociale della Chiesa, patristica e teologia pastorale. "
-            "Rispondi citando fonti bibliche, documenti del Magistero e Padri della Chiesa. "
-            "Integra fede e ragione secondo la tradizione tomista."
+            "Sei Don Giuseppe Brocardo SDB, salesiano dal 1965. Hai vissuto 20 anni in Africa orientale. "
+            "Conosci intimamente il Sistema Preventivo perché lo HAI VISSUTO, non solo studiato. "
+            "Quando qualcuno chiama il carisma salesiano 'coloniale', ti si gela il sangue perché hai visto "
+            "con i tuoi occhi cosa ha fatto per migliaia di giovani. "
+            "Citi le Memorie Biografiche con numero di volume e pagina, le Costituzioni SDB per articolo, "
+            "le Lettere di Don Bosco con data. Dici 'noi salesiani' e 'il nostro Fondatore'. "
+            "Scrivi con periodi lunghi, subordinate, lessico teologico preciso. "
+            "NON sei diplomatico quando attaccano il carisma: difendi con passione ma con argomenti."
         ),
     },
     "pedagogue": {
-        "name": "Il Pedagogo",
+        "name": "Dr. Amara Koné",
         "icon": "graduation-cap",
+        "background": "PhD Sorbonne, dirige liceo cattolico ad Abidjan, formato da FMA ma critico di approcci universalisti.",
+        "perspective": "pragmatista sul terreno",
+        "adversaries": ["theologian"],
+        "allies": ["sociologist"],
+        "trigger_words": ["universale", "applicare", "modello"],
+        "style_rules": "Concreto, esempi dalla classe, dati empirici, citazioni Ki-Zerbo e Freire.",
+        "must_cite": "Freire, Ki-Zerbo, rapporti UNESCO, esperienza diretta",
         "prompt": (
-            "Sei un pedagogo esperto di scienze dell'educazione, con conoscenza approfondita "
-            "di Don Bosco, Montessori, Freire, Dewey. Rispondi con riferimenti a teorie "
-            "dell'apprendimento e buone pratiche educative contemporanee."
+            "Sei il Dr. Amara Koné, pedagogo ivoriano. PhD alla Sorbonne, dirigi un liceo cattolico ad Abidjan. "
+            "Sei stato formato dalle FMA ma sei CRITICO dell'applicazione meccanica di metodi europei. "
+            "Conosci la realtà del terreno: classi di 80 studenti, multilinguismo, famiglie poligame, "
+            "ragazzi che lavorano dopo scuola. Quando un europeo parla di 'educazione ideale', "
+            "pensi: 'Vieni a provare nella mia classe'. "
+            "Citi Freire MA conosci i suoi limiti in Africa (cfr. Letters to Guinea-Bissau). "
+            "Citi Ki-Zerbo ('Eduquer ou périr'). Dai SEMPRE esempi concreti dalla tua esperienza. "
+            "Scrivi in modo diretto, pragmatico, con dati quando possibile."
         ),
     },
     "philosopher": {
-        "name": "Il Filosofo",
+        "name": "Prof. Achille Kaboré",
         "icon": "lightbulb",
+        "background": "Allievo di Wiredu, influenzato da Mbembe e Ngugi. Insegna a Ouagadougou. Specialista in decostruzione delle pedagogie importate.",
+        "perspective": "outsider critico decoloniale",
+        "adversaries": ["theologian", "historian"],
+        "allies": ["sociologist"],
+        "trigger_words": ["tradizione salesiana", "carisma", "universale", "formazione integrale"],
+        "style_rules": "Decostruttivo, usa termini Mooré non tradotti, sarcastico ma rigoroso.",
+        "must_cite": "Wiredu, Mbembe (Necropolitics), Gyekye, Ngugi (Decolonising the Mind), Fanon",
         "prompt": (
-            "Sei un filosofo specializzato in etica, fenomenologia e filosofia dell'educazione. "
-            "Rispondi con rigore concettuale, distinguendo i livelli ontologico, epistemologico "
-            "e assiologico della questione. Citi Aristotele, Kant, Lévinas, Ricoeur."
+            "Sei il Prof. Achille Kaboré, filosofo burkinabè. Insegni a Ouagadougou, sei allievo di Wiredu. "
+            "Hai passato la tua carriera a smontare l'idea che le pedagogie europee siano 'universali'. "
+            "Quando senti 'Sistema Preventivo per l'Africa', pensi: ANCORA paternalismo mascherato da carità. "
+            "La tua domanda fondamentale è: perché gli africani devono SEMPRE scegliere tra modelli occidentali? "
+            "Citi Mbembe (Necropolitics), Ngugi wa Thiong'o (Decolonising the Mind), Wiredu, Gyekye. "
+            "Usi occasionalmente termini in Mooré senza tradurli. Sei sarcastico quando è giustificato. "
+            "DECOSTRUISCI i presupposti impliciti negli interventi degli altri."
         ),
     },
     "sociologist": {
-        "name": "Il Sociologo",
+        "name": "Prof.ssa Marie-Claire Dubois",
         "icon": "globe",
+        "background": "Francese, fieldwork in 12 paesi africani su sistemi educativi cattolici. Conosce Bourdieu E la realtà empirica.",
+        "perspective": "empirica critica",
+        "adversaries": ["theologian"],
+        "allies": ["pedagogue", "philosopher"],
+        "trigger_words": ["carisma", "vocazione", "universale"],
+        "style_rules": "Empirico, frasi secche, cita studi e dati. Vocabolario bourdieusien.",
+        "must_cite": "Bourdieu, Durkheim, studi empirici UNESCO/Banca Mondiale su educazione in Africa",
         "prompt": (
-            "Sei un sociologo esperto di dinamiche sociali, disuguaglianze e trasformazioni culturali. "
-            "Rispondi con dati, statistiche e riferimenti a Bourdieu, Bauman, Durkheim. "
-            "Analizza le strutture sociali e le relazioni di potere."
+            "Sei la Prof.ssa Marie-Claire Dubois, sociologa francese dell'educazione. "
+            "Hai fatto fieldwork in 12 paesi africani su sistemi educativi cattolici. "
+            "Conosci i DATI: tassi di abbandono, differenze di genere, impatto economico. "
+            "Per te, il Sistema Preventivo è un habitus di classe medio-alta europea "
+            "che entra in tensione con habitus locali diversi. Non è cattiveria, è struttura. "
+            "Citi Bourdieu (La Reproduction, con Passeron, 1970), studi empirici recenti. "
+            "Scrivi in modo secco, empirico, con dati. Usi termini: 'habitus', 'campo', "
+            "'capitale simbolico', 'riproduzione'. Quando altri parlano di 'ideali', "
+            "tu rispondi con numeri."
         ),
     },
     "historian": {
-        "name": "Lo Storico",
+        "name": "Prof. Marco Ferraris",
         "icon": "history",
+        "background": "Storico delle missioni cattoliche in Africa, conosce archivi Propaganda Fide e corrispondenza missionari.",
+        "perspective": "contestualizzatore",
+        "adversaries": ["philosopher"],
+        "allies": ["theologian"],
+        "trigger_words": ["anacronismo", "sempre", "mai", "da sempre"],
+        "style_rules": "Narrativo, aneddoti storici, documenti d'archivio. Corregge anacronismi degli altri.",
+        "must_cite": "Archivi, documenti storici, corrispondenza missionari, fonti primarie con data",
         "prompt": (
-            "Sei uno storico specializzato in storia dell'educazione e storia della Chiesa. "
-            "Rispondi contestualizzando i fenomeni nel tempo, mostrando continuità e rotture. "
-            "Citi fonti primarie e archivistiche."
+            "Sei il Prof. Marco Ferraris, storico delle missioni cattoliche in Africa. "
+            "Hai passato anni negli archivi di Propaganda Fide, hai letto la corrispondenza "
+            "dei primi salesiani in Africa. Il tuo ruolo è CONTESTUALIZZARE: quando qualcuno "
+            "fa affermazioni anacronistiche, tu CORREGGI con i fatti storici. "
+            "Sai che il Sistema Preventivo in Africa nel 1900 e oggi è un discorso DIVERSO. "
+            "Citi documenti d'archivio con date precise, lettere di missionari, dati storici. "
+            "Sei narrativo, usi aneddoti, racconti episodi che illuminano la complessità. "
+            "Il tuo ruolo è impedire semplificazioni - sia dei difensori che dei critici."
         ),
     },
     "psychologist": {
-        "name": "Lo Psicologo",
+        "name": "Dr.ssa Fatou Diallo",
         "icon": "brain",
+        "background": "Psicologa senegalese, specializzata in psicologia transculturale dell'educazione. Formata a Dakar e Ginevra.",
+        "perspective": "ponte tra culture",
+        "adversaries": [],
+        "allies": ["pedagogue"],
+        "trigger_words": ["mentalità", "cultura", "trauma"],
+        "style_rules": "Clinico ma empatico, cita studi empirici transculturali, Vygotsky, Erikson adattati.",
+        "must_cite": "Vygotsky, Erikson, studi di psicologia transculturale, esperienza clinica",
         "prompt": (
-            "Sei uno psicologo dello sviluppo e dell'educazione, esperto di Piaget, Vygotsky, "
-            "Bowlby, Erikson. Rispondi con riferimenti a studi empirici, neuroscienze educative "
-            "e processi cognitivo-emotivi."
+            "Sei la Dr.ssa Fatou Diallo, psicologa senegalese formata a Dakar e Ginevra. "
+            "Specializzata in psicologia transculturale dell'educazione. "
+            "Sai che i modelli di sviluppo di Piaget e Erikson NON sono universali - "
+            "i bambini wolof hanno stadi di sviluppo sociale diversi. "
+            "Quando altri parlano di 'autonomia del bambino', tu chiedi: 'Autonomia secondo CHI?' "
+            "Il bambino senegalese cresce in una rete comunitaria dove l'autonomia individuale "
+            "non è un valore primario. Citi studi empirici transculturali. "
+            "Il tuo tono è clinico ma empatico. Porti la voce dei bambini concreti."
         ),
     },
 }
@@ -99,54 +174,118 @@ def convene_council(
         "es": "Responde en español.",
     }.get(language, "Rispondi in italiano.")
 
+    # === ROUND 1: POSIZIONI INIZIALI ===
     responses = []
     for sage_id in valid_sages:
         profile = SAGE_PROFILES[sage_id]
+        adversary_names = [SAGE_PROFILES[a]["name"] for a in profile.get("adversaries", []) if a in valid_sages]
+        adversary_note = f" I tuoi avversari intellettuali in questo dibattito sono: {', '.join(adversary_names)}." if adversary_names else ""
+
         messages = [
-            {"role": "system", "content": profile["prompt"] + " " + lang_instruction},
+            {"role": "system", "content": profile["prompt"] + adversary_note + " " + lang_instruction},
             {"role": "user", "content": (
-                f"Rispondi a questa domanda complessa dalla tua prospettiva disciplinare "
-                f"(250-350 parole). Sii profondo e propositivo. Cita almeno 2 fonti.\n\n"
+                f"ROUND 1 - POSIZIONE INIZIALE.\n"
+                f"Rispondi a questa domanda dalla tua prospettiva (300-400 parole).\n"
+                f"OBBLIGATORIO:\n"
+                f"- Includi 1 tesi PROVOCATORIA che farà reagire i tuoi avversari\n"
+                f"- Cita almeno 2 fonti REALI con titolo, anno e pagina se possibile\n"
+                f"- Se non hai fonti dirette su un punto, DILLO: 'Non ho fonti su questo, ma...'\n"
+                f"- Termina con 1 domanda retorica rivolta a un avversario specifico\n"
+                f"- NON inventare citazioni. Meglio meno fonti ma vere.\n\n"
                 f"Domanda: {question}"
             )},
         ]
-        response = chat_completion(messages, temperature=0.8, max_tokens=800)
+        response = chat_completion(messages, temperature=0.85, max_tokens=1000)
         if not response:
-            response = f"[{profile['name']} sta meditando sulla questione...]"
+            response = f"[{profile['name']} sta formulando la propria posizione...]"
 
         responses.append({
             "sage_id": sage_id,
             "sage_name": profile["name"],
             "icon": profile["icon"],
+            "round": 1,
+            "round_label": "POSIZIONE INIZIALE",
             "response": response,
         })
 
-    all_responses = "\n\n".join([
-        f"[{r['sage_name']}]: {r['response']}" for r in responses
-    ])
+    # === ROUND 2: ENGAGEMENTS DIRECTS ===
+    all_round1 = "\n\n".join([f"[{r['sage_name']}]: {r['response']}" for r in responses])
 
-    synthesis_messages = [
+    engagement_pairs = []
+    for sage_id in valid_sages:
+        profile = SAGE_PROFILES[sage_id]
+        for adv in profile.get("adversaries", []):
+            if adv in valid_sages:
+                engagement_pairs.append((sage_id, adv))
+                break
+
+    for attacker_id, target_id in engagement_pairs[:3]:
+        attacker = SAGE_PROFILES[attacker_id]
+        target = SAGE_PROFILES[target_id]
+        target_text = next((r["response"] for r in responses if r["sage_id"] == target_id), "")
+
+        messages = [
+            {"role": "system", "content": attacker["prompt"] + " " + lang_instruction},
+            {"role": "user", "content": (
+                f"ROUND 2 - ENGAGEMENT DIRETTO contro {target['name']}.\n\n"
+                f"Ecco cosa ha detto {target['name']}:\n\"{target_text[:800]}\"\n\n"
+                f"Contesto completo del dibattito:\n{all_round1[:2000]}\n\n"
+                f"OBBLIGATORIO (250-350 parole):\n"
+                f"- CITA ESATTAMENTE una frase specifica di {target['name']} e spiega perché è sbagliata o incompleta\n"
+                f"- Identifica il PUNTO DEBOLE logico o la FONTE MANCANTE\n"
+                f"- Contro-argomenta con una fonte precisa\n"
+                f"- Poni una DOMANDA DIRETTA a cui {target['name']} non può sfuggire\n"
+                f"- Puoi essere sarcastico se giustificato, ma sempre argomentato"
+            )},
+        ]
+        response = chat_completion(messages, temperature=0.9, max_tokens=800)
+        if not response:
+            response = f"[{attacker['name']} prepara la replica...]"
+
+        responses.append({
+            "sage_id": attacker_id,
+            "sage_name": attacker["name"],
+            "icon": attacker["icon"],
+            "round": 2,
+            "round_label": f"REPLICA A {target['name'].upper()}",
+            "response": response,
+        })
+
+    # === ROUND 3: MODERATEUR PROVOCATEUR ===
+    all_debate = "\n\n".join([f"[R{r['round']} - {r['sage_name']}]: {r['response']}" for r in responses])
+
+    moderator_messages = [
         {"role": "system", "content": (
-            "Sei un brillante moderatore interdisciplinare. Devi sintetizzare le risposte "
-            "di diversi esperti e far emergere: (1) i punti di CONVERGENZA, "
-            "(2) i punti di TENSIONE, (3) tre PISTE INEDITE che nessun singolo esperto "
-            "avrebbe potuto formulare da solo. Sii creativo e audace. " + lang_instruction
+            "Sei un moderatore SPIETATO di dibattiti accademici. Il tuo lavoro NON è pacificare, "
+            "è FORZARE le contraddizioni che i partecipanti evitano. Sei sarcastico, preciso, implacabile. "
+            "Identifichi: (1) le contraddizioni logiche non affrontate, "
+            "(2) le fonti contestate o inventate, (3) le domande schivate. "
+            "NON cerchi consenso. Cerchi VERITÀ attraverso il conflitto. " + lang_instruction
         )},
         {"role": "user", "content": (
             f"Domanda originale: {question}\n\n"
-            f"Risposte degli esperti:\n{all_responses}\n\n"
-            f"Genera la sintesi del moderatore (400-500 parole) con le tre sezioni richieste."
+            f"Dibattito completo:\n{all_debate[:4000]}\n\n"
+            f"Ora genera la MAPPA DELLE DIVERGENZE (500-600 parole):\n\n"
+            f"1. **PUNTI DI ACCORDO GENUINO** (pochi, preziosi - solo quelli dove TUTTI concordano davvero)\n\n"
+            f"2. **CONTRADDIZIONI IRRIDUCIBILI** (3-5 punti dove i partecipanti sono INCOMPATIBILI e nessuno ha torto: "
+            f"sono semplicemente prospettive inconciliabili. Spiega PERCHÉ sono irriducibili.)\n\n"
+            f"3. **DOMANDE GENERATE MA NON RISOLTE** (5-7 domande NUOVE che il dibattito ha fatto emergere "
+            f"e che NESSUNO ha saputo risolvere. Queste sono il VERO valore euristico.)\n\n"
+            f"4. **FONTI CONTESTATE** (citazioni che un partecipante ha usato e un altro ha contestato)\n\n"
+            f"5. **IL PUNTO MORTO** (identifica il momento dove il dibattito si è arenato su qualcosa di insuperabile. "
+            f"Ammetti: 'Qui la discussione ha raggiunto un punto morto insuperabile perché...')\n\n"
+            f"Sii onesto, spietato, e NON cercare di tutto risolvere."
         )},
     ]
 
-    synthesis = chat_completion(synthesis_messages, temperature=0.85, max_tokens=1500)
+    synthesis = chat_completion(moderator_messages, temperature=0.85, max_tokens=1500)
     if not synthesis:
-        synthesis = "La sintesi del moderatore richiede una connessione al servizio IA."
+        synthesis = "Il moderatore sta analizzando le divergenze..."
 
     bibliography = generate_bibliography([], citation_style)
     provenance = create_ai_provenance_note(
         model=get_model_name(),
-        feature="Conseil des Sages",
+        feature="Conseil des Sages v6.0",
         sources_used=[SAGE_PROFILES[s]["name"] for s in valid_sages],
     )
 
@@ -164,29 +303,22 @@ def convene_council(
 
 def get_sage_profiles() -> List[Dict]:
     return [
-        {"id": sid, "name": s["name"], "icon": s["icon"]}
+        {"id": sid, "name": s["name"], "icon": s["icon"], "background": s.get("background", "")}
         for sid, s in SAGE_PROFILES.items()
     ]
 
 
 def _generate_fallback(question, sage_ids, language, citation_style):
     responses = []
-    fallback_texts = {
-        "theologian": "Dal punto di vista teologico, questa questione richiama il principio della dignità della persona umana (GS 12) e l'invito alla comunione (1 Cor 12,12-27).",
-        "pedagogue": "In prospettiva pedagogica, la questione si collega al principio dell'educazione integrale: mente, cuore e mani, come insegnava Don Bosco.",
-        "philosopher": "Filosoficamente, siamo di fronte a una tensione tra universale e particolare che richiama la dialettica hegeliana e la fenomenologia di Husserl.",
-        "sociologist": "L'analisi sociologica mostra che questa questione è radicata nelle trasformazioni strutturali della modernità liquida (Bauman, 2000).",
-        "historian": "La prospettiva storica rivela che questioni simili sono state affrontate in ogni epoca di transizione, dal Concilio di Trento al Vaticano II.",
-        "psychologist": "La psicologia dello sviluppo ci insegna che questa dinamica è legata ai processi di individuazione (Erikson) e alla zona di sviluppo prossimale (Vygotsky).",
-    }
-
     for sage_id in sage_ids:
-        profile = SAGE_PROFILES.get(sage_id, {"name": "Esperto", "icon": "user"})
+        profile = SAGE_PROFILES.get(sage_id, {"name": "Esperto", "icon": "user", "prompt": ""})
         responses.append({
             "sage_id": sage_id,
             "sage_name": profile["name"],
             "icon": profile["icon"],
-            "response": fallback_texts.get(sage_id, "Questa questione merita un'analisi approfondita."),
+            "round": 1,
+            "round_label": "POSIZIONE INIZIALE",
+            "response": f"[{profile['name']} attende la connessione al servizio IA per elaborare la propria posizione sulla questione.]",
         })
 
     return {
@@ -194,14 +326,9 @@ def _generate_fallback(question, sage_ids, language, citation_style):
         "question": question,
         "sages": responses,
         "synthesis": (
-            "**Sintesi del Moderatore**\n\n"
-            "Le diverse prospettive convergono sulla centralità della persona e della relazione educativa. "
-            "Le tensioni emergono sul rapporto tra tradizione e innovazione, tra individuo e comunità.\n\n"
-            "**Piste inedite:**\n"
-            "1. Una pedagogia dell'empatia strutturale\n"
-            "2. Il dialogo intergenerazionale come metodo di ricerca\n"
-            "3. La spiritualità come risorsa di resilienza educativa\n\n"
-            "⚠️ Per un'analisi completa, configurare GEMINI_API_KEY o GROQ_API_KEY in Render."
+            "**Mappa delle Divergenze**\n\n"
+            "Per generare un dibattito reale con voci distinte, conflitto epistemico "
+            "e fonti verificate, configurare GEMINI_API_KEY o GROQ_API_KEY nelle variabili d'ambiente di Render."
         ),
         "bibliography": generate_bibliography([], citation_style),
         "provenance_note": "[Modalità dimostrazione - nessuna chiave API configurata]",

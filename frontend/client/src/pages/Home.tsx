@@ -721,28 +721,41 @@ export default function Home() {
 
                   {councilResult && councilResult.success && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8">
-                      {councilResult.sages?.map((sage: any, i: number) => (
-                        <Card key={i} className="bg-card border-l-4 border-l-white/30">
-                          <CardHeader className="pb-2">
-                            <span className="font-tech font-bold text-white">{sage.sage_name}</span>
-                          </CardHeader>
-                          <CardContent><p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{sage.response}</p></CardContent>
-                        </Card>
-                      ))}
-
-                      <Card className="bg-card border-2 border-white/50 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                        <CardHeader>
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-5 h-5 text-white" />
-                            <CardTitle className="font-tech text-white">SINTESI DEL MODERATORE</CardTitle>
+                      {councilResult.sages?.map((sage: any, i: number) => {
+                        const isRound2 = sage.round === 2;
+                        const borderColor = isRound2 ? "border-l-red-500/50" : "border-l-white/30";
+                        return (
+                          <div key={i} style={{animationDelay: `${i * 150}ms`}} className="animate-in fade-in">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge className={`font-mono text-[10px] ${isRound2 ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-white/10 text-white/60 border-white/20'}`}>
+                                R{sage.round}
+                              </Badge>
+                              <span className="text-[10px] font-mono text-muted-foreground/50 uppercase">{sage.round_label}</span>
+                            </div>
+                            <Card className={`bg-card/80 backdrop-blur border-l-4 ${borderColor}`}>
+                              <CardHeader className="pb-2">
+                                <span className="font-tech font-bold text-white">{sage.sage_name}</span>
+                              </CardHeader>
+                              <CardContent><p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{sage.response}</p></CardContent>
+                            </Card>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <p className="text-white leading-relaxed whitespace-pre-wrap">{councilResult.synthesis}</p>
-                          <div className="border-t border-border pt-4">
+                        );
+                      })}
+
+                      <div className="relative py-8">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-red-500/30"></div></div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-background px-6 py-2 rounded-full border-2 border-red-500/50 text-red-400 font-tech tracking-[0.3em] text-sm shadow-[0_0_30px_rgba(239,68,68,0.2)]">MAPPA DELLE DIVERGENZE</span>
+                        </div>
+                      </div>
+
+                      <Card className="bg-gradient-to-br from-red-500/5 via-card to-white/5 border-2 border-white/30 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
+                        <CardContent className="p-8 space-y-6">
+                          <p className="text-white leading-relaxed whitespace-pre-wrap text-[15px]">{councilResult.synthesis}</p>
+                          <div className="border-t border-border pt-6 mt-6">
                             <p className="text-xs font-mono text-muted-foreground whitespace-pre-wrap">{councilResult.bibliography}</p>
                           </div>
-                          <p className="text-[10px] font-mono text-muted-foreground/50 italic">{councilResult.provenance_note}</p>
+                          <p className="text-[10px] font-mono text-muted-foreground/40 italic text-center">{councilResult.provenance_note}</p>
                         </CardContent>
                       </Card>
                     </div>
